@@ -18,6 +18,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "itz-ha3san"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/itz-ha3san/Snapp-Food.git",
+    "accountId": "661a51ae-8acb-4bf2-8beb-491185ce8f71"
+  }
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -97,6 +109,7 @@
       <option name="presentableId" value="Default" />
       <updated>1782750508264</updated>
       <workItem from="1782750510136" duration="2764000" />
+      <workItem from="1782756595794" duration="444000" />
     </task>
     <servers />
   </component>
