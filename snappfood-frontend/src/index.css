@@ -1,1 +1,44 @@
+/* ۱. فعال‌سازی فریم‌ورک تکمیلی تلویند نسخه ۴ */
 @import "tailwindcss";
+
+/* ۲. دو پوشه به عقب برمی‌گردیم تا فایل تم شادسی‌ان را در ریشه اصلی پروژه پیدا کنیم */
+@import "default_shadcn_theme.css";
+
+/* ۳. تنظیمات تم، فونت‌ها و رنگ‌های اختصاصی اسنپ‌فود */
+@theme {
+    --font-sans: "Plus Jakarta Sans", "Vazirmatn", sans-serif;
+
+    --color-brand-pink: #ff00a6;
+    --color-brand-pink-dark: #e00092;
+    --color-banner-purple: #a855f7;
+    --color-app-bg: #111827;
+
+    --color-primary: #ff00a6;
+    --color-primary-foreground: #ffffff;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: #FAFAFA;
+    direction: rtl; /* راست‌چین کردن کل بدنه سایت برای ظاهر فارسی اسنپ‌فود */
+    text-align: right;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+    min-height: 100vh;
+    overflow-y: auto !important; /* اجبار سیستم به فعال کردن اسکرول عمودی */
+    scroll-behavior: smooth;
+    background-color: #FAFAFA;
+}
+
+/* ۴. افکت انیمیشن شناور تصاویر در بخش هیرو */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(3deg); }
+}
+
+.animate-hero-float {
+    animation: float 5s ease-in-out infinite;
+}
