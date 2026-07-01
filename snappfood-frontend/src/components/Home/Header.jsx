@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { User, Store, MapPin, ChevronDown } from "lucide-react";
 
-export default function Header() {
+// ۱. پروپ onAuthClick را در ورودی کامپوننت دریافت می‌کنیم
+export default function Header({ onAuthClick }) {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
@@ -32,7 +33,7 @@ export default function Header() {
                         </div>
                     </div>
 
-                    <button className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2 hover:border-[#E0245E]/30 hover:shadow-sm transition-all group">
+                    <button className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2 hover:border-[#E0245E]/30 hover:shadow-sm transition-all group cursor-pointer">
                         <MapPin size={15} className="text-[#E0245E]" />
                         <span className="text-sm font-medium text-gray-800">تهران، ولنجک</span>
                         <ChevronDown size={14} className="text-gray-400 group-hover:text-[#E0245E] transition-colors" />
@@ -41,11 +42,15 @@ export default function Header() {
 
                 {/* سمت چپ: دکمه‌های ورود و ثبت‌نام */}
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-xl hover:bg-gray-50">
+                    {/* ۲. تابع onAuthClick را به onClick این دکمه متصل می‌کنیم */}
+                    <button
+                        onClick={onAuthClick}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-xl hover:bg-gray-50 cursor-pointer"
+                    >
                         <User size={16} />
                         ورود یا ثبت‌نام
                     </button>
-                    <button className="flex items-center gap-2 bg-[#E0245E] text-white text-sm font-bold px-5 py-2.5 rounded-2xl hover:bg-[#E0245E]/90 transition-all shadow-lg shadow-[#E0245E]/25 hover:shadow-[#E0245E]/40 hover:-translate-y-px">
+                    <button className="flex items-center gap-2 bg-[#E0245E] text-white text-sm font-bold px-5 py-2.5 rounded-2xl hover:bg-[#E0245E]/90 transition-all shadow-lg shadow-[#E0245E]/25 hover:shadow-[#E0245E]/40 hover:-translate-y-px cursor-pointer">
                         <Store size={15} />
                         ثبت‌نام فروشندگان
                     </button>
