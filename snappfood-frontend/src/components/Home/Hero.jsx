@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Search, MapPin, ChevronDown, Sparkles } from "lucide-react";
 
 const FLOATING_FOODS = [
@@ -10,10 +10,15 @@ const FLOATING_FOODS = [
 
 const SUGGESTIONS = ["پیتزا مارگاریتا…", "کباب کوبیده…", "سوشی سالمون…", "برگر دبل چیز…"];
 
-export default function Hero() {
+// 📍 اضافه کردن پروپ currentLocation برای همگام‌سازی با هدر
+export default function Hero({ currentLocation }) {
     const [query, setQuery] = useState("");
     const [focused, setFocused] = useState(false);
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
+
+    // استخراج استان و شهر با مقادیر پیش‌فرض برای امنیت کد
+    const province = currentLocation?.province || "تهران";
+    const city = currentLocation?.city || "تهران";
 
     useEffect(() => {
         const t = setInterval(() => setPlaceholderIdx((p) => (p + 1) % SUGGESTIONS.length), 3000);
@@ -48,7 +53,7 @@ export default function Hero() {
                 <div className="space-y-3">
                     <h1 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">
                         سفارش آنلاین غذا، <br />
-                        <span className="text-[#E0245E]">سریع و آسان</span> در خانه شما
+                        <span className="text-[#E0245E]">سریع و آسان</span> در <span className="text-brand-pink">{city}</span>
                     </h1>
                     <p className="text-base text-gray-500 font-medium max-w-md mx-auto">
                         جدیدترین و بهترین رستوران‌ها، کافه‌ها و سوپرمارکت‌ها در اطراف شما
@@ -73,12 +78,13 @@ export default function Hero() {
 
                         <div className="w-px h-6 bg-gray-200 mx-2" />
 
-                        <button className="flex items-center gap-1 px-3 text-xs text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap">
+                        {/* 📍 دکمه لوکیشن متصل به استیت مرکزی (استان و شهر) */}
+                        <div className="flex items-center gap-1 px-3 text-xs font-bold text-gray-700 whitespace-nowrap select-none">
                             <MapPin size={14} className="text-[#E0245E]" />
-                            ولنجک <ChevronDown size={12} />
-                        </button>
+                            <span>{province}، {city}</span>
+                        </div>
 
-                        <button className="bg-[#E0245E] text-white font-bold text-sm px-6 py-3 rounded-2xl hover:bg-[#E0245E]/90 transition-all shadow-md">
+                        <button className="bg-[#E0245E] text-white font-bold text-sm px-6 py-3 rounded-2xl hover:bg-[#E0245E]/90 transition-all shadow-md cursor-pointer">
                             جستجو
                         </button>
                     </div>

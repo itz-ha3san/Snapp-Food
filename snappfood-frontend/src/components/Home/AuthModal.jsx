@@ -8,7 +8,6 @@ export default function AuthModal({ isOpen, onClose }) {
     const [password, setPassword] = useState('');
     const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
-    // وضعیت‌های مربوط به لودینگ موتور و فاز دوم
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOtpStep, setIsOtpStep] = useState(false);
     const [otpValues, setOtpValues] = useState(['', '', '', '', '']);
@@ -24,7 +23,11 @@ export default function AuthModal({ isOpen, onClose }) {
         if (isOpen) setAnimate(true);
     }, [isOpen]);
 
+    // ریست کردن فرم هنگام تغییر تب یا بسته شدن
     useEffect(() => {
+        if (!isOpen) {
+            setAnimate(false);
+        }
         setPassword('');
         setShowPassword(false);
         setIsOtpStep(false);
@@ -32,7 +35,6 @@ export default function AuthModal({ isOpen, onClose }) {
         setOtpValues(['', '', '', '', '']);
     }, [isLoginTab, isOpen]);
 
-    // فیزیک شناوری ماوس
     useEffect(() => {
         const handleMouseMove = (e) => {
             if (!isOpen) return;
@@ -56,14 +58,22 @@ export default function AuthModal({ isOpen, onClose }) {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, [isOpen, isSubmitting]);
 
+    // تابع مدیریت بستن مودال به شکل امن
+    const handleCloseModal = () => {
+        if (isSubmitting) return; // موقع لودینگ بسته نشود
+        setAnimate(false);
+        setTimeout(() => {
+            onClose(); // اجرای تابع کلوز اصلی بعد از انیمیشن خروج
+        }, 200);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isSubmitting) return;
 
         setIsSubmitting(true);
-        setBtnOffset({ x: 0, y: 0 }); // قفل شدن دکمه برای اجرای انیمیشن فیزیکی
+        setBtnOffset({ x: 0, y: 0 });
 
-        // ۲.۵ ثانیه گاز دادن موتور روی دکمه و سپس ورود به بخش کد تایید
         setTimeout(() => {
             setIsOtpStep(true);
             setIsSubmitting(false);
@@ -101,7 +111,11 @@ export default function AuthModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 [perspective:1200px]">
-            <div className={`absolute inset-0 bg-black/30 backdrop-blur-md transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`} onClick={() => !isSubmitting && handleClose()} />
+            {/* بستن مودال با کلیک روی بک‌دراپ */}
+            <div
+                className={`absolute inset-0 bg-black/30 backdrop-blur-md transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
+                onClick={handleCloseModal}
+            />
 
             <div
                 ref={cardRef}
@@ -112,19 +126,25 @@ export default function AuthModal({ isOpen, onClose }) {
                     transition: isOtpStep ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 'transform 0.15s ease-out',
                     willChange: 'transform'
                 }}
-                className={`w-full max-w-md rounded-[32px] p-8 relative z-10 text-right overflow-hidden bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_25px_60px_rgba(0,0,0,0.18)] ${animate ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full max-w-md rounded-[32px] p-8 relative z-10 text-right overflow-hidden bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_25px_60px_rgba(0,0,0,0.18)] transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
                 dir="rtl"
             >
-                {/* لایه مایع پشت شیشه */}
+                {/* لایه مایع شیشه */}
                 <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden rounded-[32px]">
                     <div style={{ transform: `translateX(${mousePos.x * 15}px) translateY(${mousePos.y * 10}px)` }} className={`absolute -bottom-16 -left-20 -right-20 h-44 bg-linear-to-t ${getLiquidClass()} rounded-[40%] animate-[spin_10s_infinite_linear] opacity-70 transition-colors duration-500`} />
                 </div>
 
-                <button onClick={() => !isSubmitting && handleClose()} className="absolute top-5 left-5 p-2 rounded-xl text-gray-500 hover:bg-white/60 hover:text-brand-pink border border-white/20 transition-all duration-200 cursor-pointer z-20"><X size={18} /></button>
+                {/* دکمه ضربدر اصلی و اصلاح شده */}
+                <button
+                    onClick={handleCloseModal}
+                    className="absolute top-5 left-5 p-2 rounded-xl text-gray-500 hover:bg-white/60 hover:text-brand-pink border border-white/20 transition-all duration-200 cursor-pointer z-50"
+                >
+                    <X size={18} />
+                </button>
 
                 {!isOtpStep ? (
                     <div className="animate-fade-in duration-300">
-                        {/* بخش لوگو و اموجی */}
+                        {/* لوگو و هدر */}
                         <div className="text-center mb-8 relative z-10 select-none">
                             <div className="inline-flex items-center justify-center bg-linear-to-br from-brand-pink to-[#ff4081] text-white w-12 h-12 rounded-2xl text-2xl font-mono font-black shadow-lg mb-3 relative overflow-hidden">
                                 <span className={`transition-transform duration-300 ${(!isLoginTab && isPasswordFocused && !showPassword) ? 'translate-y-12' : ''}`}>S</span>
@@ -139,7 +159,7 @@ export default function AuthModal({ isOpen, onClose }) {
                             <button type="button" disabled={isSubmitting} onClick={() => setIsLoginTab(false)} className={`flex-1 py-2.5 rounded-xl text-center cursor-pointer transition-all ${!isLoginTab ? 'bg-white/90 text-brand-pink shadow-sm font-black' : 'text-gray-600'}`}>ساخت حساب جدید</button>
                         </div>
 
-                        {/* فرم ورود */}
+                        {/* فرم اصلی */}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className={`transition-all duration-300 overflow-hidden ${!isLoginTab ? 'max-h-24 opacity-100 mb-2' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">نام و نام خانوادگی</label>
@@ -160,7 +180,6 @@ export default function AuthModal({ isOpen, onClose }) {
                                 </div>
                             </div>
 
-                            {/* 🏍️ دکمه آهنربایی ارتقا یافته با پیست حرکت موتور زنده */}
                             <div className="pt-2">
                                 <button
                                     ref={magnetBtnRef}
@@ -170,17 +189,15 @@ export default function AuthModal({ isOpen, onClose }) {
                                         willChange: 'transform',
                                         transition: isSubmitting ? 'none' : 'transform 0.2s ease-out'
                                     }}
-                                    className="w-full bg-linear-to-r from-brand-pink to-[#ff4081] text-white font-black text-sm h-[52px] rounded-xl shadow-lg shadow-brand-pink/20 cursor-pointer flex items-center justify-center relative overflow-hidden group"
+                                    className={`w-full text-sm h-[52px] rounded-xl shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center relative overflow-hidden group ${
+                                        isSubmitting ? 'bg-gray-950/20 shadow-none border border-white/20' : 'bg-linear-to-r from-brand-pink to-[#ff4081] hover:from-brand-pink-dark hover:to-brand-pink text-white font-black'
+                                    }`}
                                 >
                                     {isSubmitting ? (
-                                        <div className="absolute inset-0 flex items-center w-full h-full" dir="ltr">
-                                            {/* خط‌چین جاده کاملاً افقی و سراسری */}
-                                            <div className="absolute left-6 right-6 h-0 border-t-2 border-dashed border-white/40 top-1/2 -translate-y-1/2 z-0" />
-
-                                            {/* محفظه متحرک موتور و متن */}
-                                            <div className="animate-[moveBike_2.5s_linear_infinite] flex items-center gap-2 relative z-10 text-white">
-                                                <Bike size={22} className="animate-[bikeBounce_0.15s_infinite_linear]" />
-                                                <span className="font-sans text-xs font-bold tracking-wider select-none">پیک اسنپ‌فود در راه است...</span>
+                                        <div className="absolute inset-0 flex items-center w-full h-full" dir="rtl">
+                                            <div className="absolute left-6 right-6 h-0 border-t-2 border-dashed border-white/30 top-1/2 -translate-y-1/2 z-0" />
+                                            <div className="animate-[moveBikeLeft_2.5s_linear_infinite] relative z-10 text-brand-pink bg-white p-1.5 rounded-full shadow-md border border-pink-100">
+                                                <Bike size={20} className="animate-[bikeBounce_0.12s_infinite_linear] transform -scale-x-1" />
                                             </div>
                                         </div>
                                     ) : (
@@ -220,17 +237,14 @@ export default function AuthModal({ isOpen, onClose }) {
                 )}
             </div>
 
-            {/* 🛠️ انیمیشن‌های CSS سفارشی اصلاح شده برای حرکت در پیست دکمه */}
             <style>{`
-        @keyframes moveBike {
-          0% { transform: translateX(-180px); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateX(380px); opacity: 0; }
+        @keyframes moveBikeLeft {
+          0% { transform: translateX(-40px); }
+          100% { transform: translateX(390px); }
         }
         @keyframes bikeBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-2px) rotate(-1deg); }
+          0%, 100% { transform: translateY(0) -scale-x-1; }
+          50% { transform: translateY(-2px) rotate(1deg) -scale-x-1; }
         }
       `}</style>
         </div>
