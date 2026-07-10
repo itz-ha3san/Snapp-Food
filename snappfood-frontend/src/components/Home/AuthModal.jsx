@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Phone, Lock, User, ArrowLeft, Eye, EyeOff, Bike } from 'lucide-react';
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
     const [isLoginTab, setIsLoginTab] = useState(true);
     const [animate, setAnimate] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
     const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,12 +25,13 @@ export default function AuthModal({ isOpen, onClose }) {
         if (isOpen) setAnimate(true);
     }, [isOpen]);
 
-    // ریست کردن فرم هنگام تغییر تب یا بسته شدن
     useEffect(() => {
         if (!isOpen) {
             setAnimate(false);
         }
         setPassword('');
+        setFullName('');
+        setPhone('');
         setShowPassword(false);
         setIsOtpStep(false);
         setIsSubmitting(false);
@@ -58,12 +61,11 @@ export default function AuthModal({ isOpen, onClose }) {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, [isOpen, isSubmitting]);
 
-    // تابع مدیریت بستن مودال به شکل امن
     const handleCloseModal = () => {
-        if (isSubmitting) return; // موقع لودینگ بسته نشود
+        if (isSubmitting) return;
         setAnimate(false);
         setTimeout(() => {
-            onClose(); // اجرای تابع کلوز اصلی بعد از انیمیشن خروج
+            onClose();
         }, 200);
     };
 
@@ -89,6 +91,19 @@ export default function AuthModal({ isOpen, onClose }) {
         if (value && index < 4) {
             otpRefs[index + 1].current.focus();
         }
+
+        if (value && index === 4) {
+            const finalOtp = newOtp.join('');
+            if (finalOtp.length === 5 && onLoginSuccess) {
+                setTimeout(() => {
+                    onLoginSuccess({
+                        name: isLoginTab ? "کاربر اسنپ‌فود" : (fullName || "کاربر جدید"),
+                        phone: phone
+                    });
+                    handleCloseModal();
+                }, 600);
+            }
+        }
     };
 
     const getPasswordStrength = () => {
@@ -111,7 +126,6 @@ export default function AuthModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 [perspective:1200px]">
-            {/* بستن مودال با کلیک روی بک‌دراپ */}
             <div
                 className={`absolute inset-0 bg-black/30 backdrop-blur-md transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
                 onClick={handleCloseModal}
@@ -129,12 +143,10 @@ export default function AuthModal({ isOpen, onClose }) {
                 className={`w-full max-w-md rounded-[32px] p-8 relative z-10 text-right overflow-hidden bg-white/40 backdrop-blur-2xl border border-white/60 shadow-[0_25px_60px_rgba(0,0,0,0.18)] transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
                 dir="rtl"
             >
-                {/* لایه مایع شیشه */}
                 <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden rounded-[32px]">
-                    <div style={{ transform: `translateX(${mousePos.x * 15}px) translateY(${mousePos.y * 10}px)` }} className={`absolute -bottom-16 -left-20 -right-20 h-44 bg-linear-to-t ${getLiquidClass()} rounded-[40%] animate-[spin_10s_infinite_linear] opacity-70 transition-colors duration-500`} />
+                    <div style={{ transform: `translateX(${mousePos.x * 15}px) translateY(${mousePos.y * 10}px)` }} className={`absolute -bottom-16 -left-20 -right-20 h-44 bg-gradient-to-t ${getLiquidClass()} rounded-[40%] animate-[spin_10s_infinite_linear] opacity-70 transition-colors duration-500`} />
                 </div>
 
-                {/* دکمه ضربدر اصلی و اصلاح شده */}
                 <button
                     onClick={handleCloseModal}
                     className="absolute top-5 left-5 p-2 rounded-xl text-gray-500 hover:bg-white/60 hover:text-brand-pink border border-white/20 transition-all duration-200 cursor-pointer z-50"
@@ -144,31 +156,30 @@ export default function AuthModal({ isOpen, onClose }) {
 
                 {!isOtpStep ? (
                     <div className="animate-fade-in duration-300">
-                        {/* لوگو و هدر */}
                         <div className="text-center mb-8 relative z-10 select-none">
-                            <div className="inline-flex items-center justify-center bg-linear-to-br from-brand-pink to-[#ff4081] text-white w-12 h-12 rounded-2xl text-2xl font-mono font-black shadow-lg mb-3 relative overflow-hidden">
+                            <div className="inline-flex items-center justify-center bg-gradient-to-br from-brand-pink to-[#ff4081] text-white w-12 h-12 rounded-2xl text-2xl font-mono font-black shadow-lg mb-3 relative overflow-hidden">
                                 <span className={`transition-transform duration-300 ${(!isLoginTab && isPasswordFocused && !showPassword) ? 'translate-y-12' : ''}`}>S</span>
                                 <div className={`absolute inset-0 bg-black/20 flex items-center justify-center text-xs transition-all duration-300 ${(!isLoginTab && isPasswordFocused && !showPassword) ? 'translate-y-0' : 'translate-y-12'}`}>🙈</div>
                             </div>
-                            <h3 className="text-xl font-black text-gray-900">{!isLoginTab && getPasswordStrength() === 'weak' ? 'رمزت خیلی کوتاهه! 🧐' : !isLoginTab && getPasswordStrength() === 'medium' ? 'خوبه، ولی قوی‌ترش کن ⚡' : !isLoginTab && getPasswordStrength() === 'strong' ? 'آفرین! رمز فوق‌العادست 💪' : 'به اسنپ‌فود خوش آمدید'}</h3>
+                            <h3 className="text-xl font-black text-gray-900">
+                                {!isLoginTab && getPasswordStrength() === 'weak' ? 'رمزت خیلی کوتاهه! 🧐' : !isLoginTab && getPasswordStrength() === 'medium' ? 'خوبه، ولی قوی‌ترش کن ⚡' : !isLoginTab && getPasswordStrength() === 'strong' ? 'آفرین! رمز فوق‌العادست 💪' : 'به اسنپ‌فود خوش آمدید'}
+                            </h3>
                         </div>
 
-                        {/* تب‌ها */}
                         <div className="flex bg-gray-900/5 backdrop-blur-xs p-1 rounded-2xl mb-6 font-bold text-xs border border-white/30">
                             <button type="button" disabled={isSubmitting} onClick={() => setIsLoginTab(true)} className={`flex-1 py-2.5 rounded-xl text-center cursor-pointer transition-all ${isLoginTab ? 'bg-white/90 text-brand-pink shadow-sm font-black' : 'text-gray-600'}`}>ورود به پنل</button>
                             <button type="button" disabled={isSubmitting} onClick={() => setIsLoginTab(false)} className={`flex-1 py-2.5 rounded-xl text-center cursor-pointer transition-all ${!isLoginTab ? 'bg-white/90 text-brand-pink shadow-sm font-black' : 'text-gray-600'}`}>ساخت حساب جدید</button>
                         </div>
 
-                        {/* فرم اصلی */}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className={`transition-all duration-300 overflow-hidden ${!isLoginTab ? 'max-h-24 opacity-100 mb-2' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">نام و نام خانوادگی</label>
-                                <div className="relative flex items-center"><User size={16} className="absolute right-4 text-gray-400" /><input type="text" placeholder="مثلاً حسن محمدی" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-gray-900" /></div>
+                                <div className="relative flex items-center"><User size={16} className="absolute right-4 text-gray-400" /><input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="مثلاً حسن محمدی" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-gray-900" /></div>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">شماره تلفن همراه</label>
-                                <div className="relative flex items-center"><Phone size={16} className="absolute right-4 text-gray-400" /><input required type="tel" placeholder="09123456789" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900" /></div>
+                                <div className="relative flex items-center"><Phone size={16} className="absolute right-4 text-gray-400" /><input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09123456789" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900" /></div>
                             </div>
 
                             <div>
@@ -176,7 +187,9 @@ export default function AuthModal({ isOpen, onClose }) {
                                 <div className="relative flex items-center">
                                     <Lock size={16} className="absolute right-4 text-gray-400" />
                                     <input required type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setIsPasswordFocused(true)} onBlur={() => setIsPasswordFocused(false)} placeholder="••••••••" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-12 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900" />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 text-gray-400 hover:text-brand-pink p-1 rounded-lg"><Eye size={16} /></button>
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 text-gray-400 hover:text-brand-pink p-1 rounded-lg">
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
                                 </div>
                             </div>
 
@@ -190,7 +203,7 @@ export default function AuthModal({ isOpen, onClose }) {
                                         transition: isSubmitting ? 'none' : 'transform 0.2s ease-out'
                                     }}
                                     className={`w-full text-sm h-[52px] rounded-xl shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center relative overflow-hidden group ${
-                                        isSubmitting ? 'bg-gray-950/20 shadow-none border border-white/20' : 'bg-linear-to-r from-brand-pink to-[#ff4081] hover:from-brand-pink-dark hover:to-brand-pink text-white font-black'
+                                        isSubmitting ? 'bg-gray-950/20 shadow-none border border-white/20' : 'bg-gradient-to-r from-brand-pink to-[#ff4081] hover:opacity-90 text-white font-black'
                                     }`}
                                 >
                                     {isSubmitting ? (
@@ -211,7 +224,6 @@ export default function AuthModal({ isOpen, onClose }) {
                         </form>
                     </div>
                 ) : (
-                    /* فاز دوم: تایید کد OTP */
                     <div className="animate-fade-in [transform:rotateY(360deg)] text-center py-4">
                         <div className="inline-flex items-center justify-center bg-purple-600 text-white w-12 h-12 rounded-2xl text-xl font-black mb-4 shadow-lg shadow-purple-500/30">🔑</div>
                         <h3 className="text-xl font-black text-gray-900">کد تایید را وارد کنید</h3>
@@ -238,15 +250,15 @@ export default function AuthModal({ isOpen, onClose }) {
             </div>
 
             <style>{`
-        @keyframes moveBikeLeft {
-          0% { transform: translateX(-40px); }
-          100% { transform: translateX(390px); }
-        }
-        @keyframes bikeBounce {
-          0%, 100% { transform: translateY(0) -scale-x-1; }
-          50% { transform: translateY(-2px) rotate(1deg) -scale-x-1; }
-        }
-      `}</style>
+                @keyframes moveBikeLeft {
+                    0% { transform: translateX(-40px); }
+                    100% { transform: translateX(390px); }
+                }
+                @keyframes bikeBounce {
+                    0%, 100% { transform: translateY(0) scaleX(-1); }
+                    50% { transform: translateY(-2px) rotate(1deg) scaleX(-1); }
+                }
+            `}</style>
         </div>
     );
 }

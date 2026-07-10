@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, ChevronDown, Sparkles } from "lucide-react";
+import { Search, MapPin, Sparkles } from "lucide-react";
 
 const FLOATING_FOODS = [
     { src: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=340&h=340&fit=crop&auto=format", alt: "پیتزا", style: "top-[8%] right-[2%] w-48 rotate-[12deg]", delay: "0s" },
@@ -10,13 +10,12 @@ const FLOATING_FOODS = [
 
 const SUGGESTIONS = ["پیتزا مارگاریتا…", "کباب کوبیده…", "سوشی سالمون…", "برگر دبل چیز…"];
 
-// 📍 اضافه کردن پروپ currentLocation برای همگام‌سازی با هدر
 export default function Hero({ currentLocation }) {
     const [query, setQuery] = useState("");
     const [focused, setFocused] = useState(false);
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
 
-    // استخراج استان و شهر با مقادیر پیش‌فرض برای امنیت کد
+    // استخراج ایمن استان و شهر با مقادیر پیش‌فرض
     const province = currentLocation?.province || "تهران";
     const city = currentLocation?.city || "تهران";
 
@@ -30,20 +29,26 @@ export default function Hero({ currentLocation }) {
             {/* بک‌گراند گرادینت */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#FFF0F5] via-[#F9FAFB] to-[#F0F4FF] pointer-events-none" />
 
-            {/* حباب‌های نوری دکوراتیو */}
+            {/* حباب‌های نوری دکوراتیو پس‌زمینه */}
             <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-pink-500/5 blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-purple-500/5 blur-3xl pointer-events-none" />
 
-            {/* تصاویر شناور غذاها با انیمیشن */}
+            {/* تصاویر شناور غذاها با انیمیشن محلی سفارشی */}
             {FLOATING_FOODS.map((f, i) => (
                 <div key={i} className={`absolute ${f.style} hidden lg:block pointer-events-none select-none z-0`}>
-                    <div className="relative shadow-2xl rounded-[28px] overflow-hidden bg-black/5 p-1 ring-4 ring-white/80 animate-[float_4s_ease-in-out_infinite]" style={{ animationDelay: f.delay }}>
+                    <div
+                        className="relative shadow-2xl rounded-[28px] overflow-hidden bg-black/5 p-1 ring-4 ring-white/80"
+                        style={{
+                            animation: `heroFloat 5s ease-in-out infinite`,
+                            animationDelay: f.delay
+                        }}
+                    >
                         <img src={f.src} alt={f.alt} className="rounded-[24px] object-cover w-full aspect-square" />
                     </div>
                 </div>
             ))}
 
-            {/* محتوای وسط */}
+            {/* محتوای اصلی لایه وسط */}
             <div className="relative z-10 flex flex-col items-center gap-8 max-w-2xl w-full px-6 text-center">
                 <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-pink-200 rounded-full px-4 py-1.5 shadow-sm">
                     <Sparkles size={13} className="text-[#E0245E]" />
@@ -60,7 +65,7 @@ export default function Hero({ currentLocation }) {
                     </p>
                 </div>
 
-                {/* باکس جستجوی مدرن */}
+                {/* باکس جستجوی پیشرفته */}
                 <div className={`w-full max-w-xl transition-all duration-300 ${focused ? "scale-[1.01]" : ""}`}>
                     <div className={`flex items-center bg-white rounded-[24px] border p-2 transition-all duration-300 shadow-xl ${focused ? "border-[#E0245E]/40 shadow-[#E0245E]/5" : "border-gray-200/80"}`}>
                         <div className="flex-1 flex items-center gap-3 pr-4">
@@ -78,7 +83,7 @@ export default function Hero({ currentLocation }) {
 
                         <div className="w-px h-6 bg-gray-200 mx-2" />
 
-                        {/* 📍 دکمه لوکیشن متصل به استیت مرکزی (استان و شهر) */}
+                        {/* دکمه لوکیشن متصل به آدرس کامپوننت مادر */}
                         <div className="flex items-center gap-1 px-3 text-xs font-bold text-gray-700 whitespace-nowrap select-none">
                             <MapPin size={14} className="text-[#E0245E]" />
                             <span>{province}، {city}</span>
@@ -104,6 +109,14 @@ export default function Hero({ currentLocation }) {
                     ))}
                 </div>
             </div>
+
+            {/* تزریق استایل انیمیشن شناور محلی برای تضمین حرکت تصاویر */}
+            <style>{`
+                @keyframes heroFloat {
+                    0%, 100% { transform: translateY(0px) rotate(0deg); }
+                    50% { transform: translateY(-15px) rotate(2deg); }
+                }
+            `}</style>
         </section>
     );
 }

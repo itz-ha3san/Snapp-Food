@@ -1,11 +1,12 @@
-import { Star, ArrowLeft, ArrowRight } from 'lucide-react';
+import React from 'react';
+import { Star, ArrowLeft, ArrowRight, Clock, Bike, ChevronLeft } from 'lucide-react';
 
-// داده‌های بخش بهترین‌های شهر تو
 const restaurants = [
     {
         id: 1,
         name: "پیتزا هومه",
         type: "پیتزا • ایتالیایی",
+        categories: ["pizza"],
         rating: "4.9",
         time: "25-35 دقیقه",
         delivery: "ارسال رایگان",
@@ -17,6 +18,7 @@ const restaurants = [
         id: 2,
         name: "برگر فکتوری",
         type: "برگر • فست فود",
+        categories: ["burger"],
         rating: "4.7",
         time: "20-30 دقیقه",
         delivery: "ارسال رایگان",
@@ -28,6 +30,7 @@ const restaurants = [
         id: 3,
         name: "رستوران کوکو",
         type: "سوشی • ژاپنی",
+        categories: ["pizza"],
         rating: "4.8",
         time: "45-55 دقیقه",
         delivery: "ارسال رایگان",
@@ -38,6 +41,7 @@ const restaurants = [
         id: 4,
         name: "کباب‌سرای لاله",
         type: "کباب • ایرانی",
+        categories: ["iranian"],
         rating: "4.6",
         time: "30-40 دقیقه",
         delivery: "ارسال رایگان",
@@ -46,66 +50,80 @@ const restaurants = [
     }
 ];
 
-export default function FeaturedRestaurants() {
-    // برطرف کردن خطای ارجاع به تصویر وب‌سایت
+export default function FeaturedRestaurants({ onRestaurantSelect }) {
     const handleImageError = (e) => {
         e.target.style.display = 'none';
     };
 
     return (
-        <section className="max-w-7xl mx-auto px-4 py-12 border-t border-gray-100 mt-6">
-            <div className="flex items-center justify-between mb-6">
+        <section className="max-w-7xl mx-auto px-4 py-16 border-t border-gray-100/70 mt-8" style={{ direction: 'rtl' }}>
+            {/* هدر بخش بهترین‌ها */}
+            <div className="flex items-center justify-between mb-10">
                 <div className="text-right">
-                    <span className="text-[10px] bg-pink-50 text-brand-pink px-2 py-0.5 rounded-md font-bold mb-1 inline-block">رستوران‌های برگزیده</span>
-                    <h2 className="text-xl font-black text-gray-900">بهترین‌های شهر تو</h2>
+                    <span className="text-[11px] bg-pink-50 text-brand-pink px-3 py-1 rounded-full font-black mb-2 inline-block tracking-wide shadow-xs shadow-brand-pink/5">
+                        رستوران‌های برگزیده
+                    </span>
+                    <h2 className="text-2xl font-black text-gray-900 sm:text-3xl">بهترین‌های شهر تو</h2>
                 </div>
                 <div className="flex gap-2">
-                    <button className="p-2 bg-white border border-gray-200 rounded-full text-gray-400 hover:text-gray-700 shadow-xs cursor-pointer"><ArrowRight size={16} /></button>
-                    <button className="p-2 bg-white border border-gray-200 rounded-full text-gray-400 hover:text-gray-700 shadow-xs cursor-pointer"><ArrowLeft size={16} /></button>
+                    <button className="p-2.5 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-800 hover:border-gray-300 shadow-sm transition-all cursor-pointer"><ArrowRight size={18} /></button>
+                    <button className="p-2.5 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-gray-800 hover:border-gray-300 shadow-sm transition-all cursor-pointer"><ArrowLeft size={18} /></button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* گرید کارت‌ها */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {restaurants.map((res) => (
-                    <div key={res.id} className="bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-lg transition duration-200 flex flex-col h-full">
-                        <div className="relative aspect-video w-full bg-gray-100">
+                    <div
+                        key={res.id}
+                        onClick={() => onRestaurantSelect && onRestaurantSelect(res)}
+                        className="group bg-white rounded-[32px] border border-gray-100/80 overflow-hidden hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full relative cursor-pointer"
+                    >
+                        {/* بخش تصویر کارت */}
+                        <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-50">
                             <img
                                 src={res.image}
                                 alt={res.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                                 onError={handleImageError}
                             />
-                            <div className="absolute inset-0 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center text-4xl -z-10">🍲</div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-80 pointer-events-none" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-4xl -z-10">🍲</div>
 
+                            {/* تگ تخفیف شرطی (اصلاح شد) */}
                             {res.discount && (
-                                <span className="absolute top-3 right-3 bg-brand-pink text-white text-[10px] font-bold px-2 py-1 rounded-lg z-10">
-                  {res.discount}
-                </span>
+                                <span className="absolute top-4 right-4 bg-gradient-to-r from-brand-pink to-[#ff4081] text-white text-[11px] font-black px-3 py-1.5 rounded-xl z-10 shadow-md shadow-brand-pink/20 tracking-tight">
+                                    {res.discount}
+                                </span>
                             )}
+
+                            {/* تگ وضعیت رستوران */}
                             {res.tag && (
-                                <span className="absolute bottom-3 right-3 bg-white text-gray-900 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-gray-100 shadow-xs z-10">
-                  {res.tag}
-                </span>
+                                <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-black px-2.5 py-1.5 rounded-xl shadow-xs z-10 border border-white/20">
+                                    {res.tag}
+                                </span>
                             )}
                         </div>
-                        <div className="p-4 flex flex-col justify-between grow text-right">
+
+                        {/* بخش توضیحات دیتای کارت */}
+                        <div className="p-5 flex flex-col justify-between grow text-right bg-gradient-to-b from-white to-gray-50/40 rounded-b-[32px] space-y-4">
                             <div>
-                                <div className="flex items-center justify-between mb-1">
-                                    <h3 className="font-bold text-base text-gray-900">{res.name}</h3>
-                                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-md text-xs font-bold">
-                                        <Star size={12} fill="currentColor" />
-                                        {res.rating}
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <h3 className="font-black text-base text-gray-800 group-hover:text-brand-pink transition-colors">
+                                        {res.name}
+                                    </h3>
+                                    <div className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[11px] font-black">
+                                        <Star size={12} className="fill-amber-600" />
+                                        <span>{res.rating}</span>
                                     </div>
                                 </div>
-                                <p className="text-xs text-gray-400 font-medium mb-4">{res.type}</p>
+                                <p className="text-gray-400 text-xs font-bold">{res.type}</p>
                             </div>
 
-                            <div className="border-t border-gray-50 pt-3 flex items-center justify-between text-[11px] text-gray-500 font-bold">
-                                <span>⏱️ {res.time}</span>
-                                <span className="text-emerald-600">{res.delivery}</span>
-                                <button className="bg-pink-50 text-brand-pink font-bold px-3 py-1 rounded-lg hover:bg-brand-pink hover:text-white transition cursor-pointer">
-                                    سفارش
-                                </button>
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-[11px] font-bold text-gray-500">
+                                <div className="flex items-center gap-1"><Clock size={13} /><span>{res.time}</span></div>
+                                <div className="flex items-center gap-1 text-emerald-600"><Bike size={13} /><span>{res.delivery}</span></div>
+                                <div className="p-1 rounded-lg bg-gray-100 group-hover:bg-brand-pink group-hover:text-white transition-colors"><ChevronLeft size={14} /></div>
                             </div>
                         </div>
                     </div>
