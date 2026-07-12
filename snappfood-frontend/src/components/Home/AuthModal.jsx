@@ -13,6 +13,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isOtpStep, setIsOtpStep] = useState(false);
     const [otpValues, setOtpValues] = useState(['', '', '', '', '']);
+
+    // تعریف مراجع به صورت آرایه خطی برای دسترسی راحت‌تر در حلقه‌ها
     const otpRefs = [useRef(), useRef(), useRef(), useRef(), useRef()];
 
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -76,25 +78,70 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
         setIsSubmitting(true);
         setBtnOffset({ x: 0, y: 0 });
 
+        // شبیه‌سازی ارسال پیامک و رفتن به مرحله OTP
         setTimeout(() => {
             setIsOtpStep(true);
             setIsSubmitting(false);
+            // فوکوس خودکار روی اولین خانه کد تایید پس از لودینگ
+            setTimeout(() => otpRefs[0].current?.focus(), 50);
         }, 2500);
     };
 
+    // اصلاح فلو و رفتارهای ورودی‌های کد تایید
     const handleOtpChange = (index, value) => {
-        if (isNaN(value)) return;
+        // فقط مجاز به وارد کردن اعداد
+        if (value && !/^\d+$/.test(value)) return;
+
         const newOtp = [...otpValues];
-        newOtp[index] = value.substring(value.length - 1);
+        // دریافت آخرین کاراکتر وارد شده
+        const lastChar = value.substring(value.length - 1);
+        newOtp[index] = lastChar;
         setOtpValues(newOtp);
 
-        if (value && index < 4) {
+        // حرکت به خانه بعدی در صورت پر شدن
+        if (lastChar && index < 4) {
             otpRefs[index + 1].current.focus();
         }
 
-        if (value && index === 4) {
-            const finalOtp = newOtp.join('');
-            if (finalOtp.length === 5 && onLoginSuccess) {
+        // بررسی تکمیل نهایی کد ۵ رقمی
+        const finalOtp = newOtp.join('');
+        if (finalOtp.length === 5 && onLoginSuccess) {
+            setTimeout(() => {
+                onLoginSuccess({
+                    name: isLoginTab ? "کاربر اسنپ‌فود" : (fullName || "کاربر جدید"),
+                    phone: phone
+                });
+                handleCloseModal();
+            }, 600);
+        }
+    };
+
+    // اصلاح رفتار دکمه پاک کردن (Backspace) برای بازگشت به خانه قبلی
+    const handleOtpKeyDown = (index, e) => {
+        if (e.key === 'Backspace') {
+            if (!otpValues[index] && index > 0) {
+                const newOtp = [...otpValues];
+                newOtp[index - 1] = ''; // پاک کردن خانه قبلی
+                setOtpValues(newOtp);
+                otpRefs[index - 1].current.focus();
+            } else {
+                const newOtp = [...otpValues];
+                newOtp[index] = '';
+                setOtpValues(newOtp);
+            }
+        }
+    };
+
+    // قابلیت کاربردی جادویی پیست کردن یکجای کد تایید ۵ رقمی
+    const handleOtpPaste = (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').trim();
+        if (/^\d{5}$/.test(pastedData)) {
+            const digits = pastedData.split('');
+            setOtpValues(digits);
+            otpRefs[4].current.focus();
+
+            if (onLoginSuccess) {
                 setTimeout(() => {
                     onLoginSuccess({
                         name: isLoginTab ? "کاربر اسنپ‌فود" : (fullName || "کاربر جدید"),
@@ -149,6 +196,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
 
                 <button
                     onClick={handleCloseModal}
+                    type="button"
                     className="absolute top-5 left-5 p-2 rounded-xl text-gray-500 hover:bg-white/60 hover:text-brand-pink border border-white/20 transition-all duration-200 cursor-pointer z-50"
                 >
                     <X size={18} />
@@ -161,7 +209,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                                 <span className={`transition-transform duration-300 ${(!isLoginTab && isPasswordFocused && !showPassword) ? 'translate-y-12' : ''}`}>S</span>
                                 <div className={`absolute inset-0 bg-black/20 flex items-center justify-center text-xs transition-all duration-300 ${(!isLoginTab && isPasswordFocused && !showPassword) ? 'translate-y-0' : 'translate-y-12'}`}>🙈</div>
                             </div>
-                            <h3 className="text-xl font-black text-gray-900">
+                            <h3 className="text-xl font-black text-gray-900 min-h-[28px]">
                                 {!isLoginTab && getPasswordStrength() === 'weak' ? 'رمزت خیلی کوتاهه! 🧐' : !isLoginTab && getPasswordStrength() === 'medium' ? 'خوبه، ولی قوی‌ترش کن ⚡' : !isLoginTab && getPasswordStrength() === 'strong' ? 'آفرین! رمز فوق‌العادست 💪' : 'به اسنپ‌فود خوش آمدید'}
                             </h3>
                         </div>
@@ -172,22 +220,57 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* فیلد نام و نام‌خانوادگی همراه با اعمال ریکوآیرد هوشمند در صورت تب ثبت‌نام */}
                             <div className={`transition-all duration-300 overflow-hidden ${!isLoginTab ? 'max-h-24 opacity-100 mb-2' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">نام و نام خانوادگی</label>
-                                <div className="relative flex items-center"><User size={16} className="absolute right-4 text-gray-400" /><input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="مثلاً حسن محمدی" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-gray-900" /></div>
+                                <div className="relative flex items-center">
+                                    <User size={16} className="absolute right-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        required={!isLoginTab}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="مثلاً حسن محمدی"
+                                        className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-gray-900 font-bold"
+                                    />
+                                </div>
                             </div>
 
+                            {/* فیلد شماره موبایل با الگوی دقیق رگکس شماره‌های ایران */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">شماره تلفن همراه</label>
-                                <div className="relative flex items-center"><Phone size={16} className="absolute right-4 text-gray-400" /><input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09123456789" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900" /></div>
+                                <div className="relative flex items-center">
+                                    <Phone size={16} className="absolute right-4 text-gray-400" />
+                                    <input
+                                        required
+                                        type="tel"
+                                        pattern="^09\d{9}$"
+                                        title="لطفاً شماره موبایل معتبر ۱۱ رقمی وارد کنید (مانند 09123456789)"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))} // جلوگیری از ورود حروف
+                                        placeholder="09123456789"
+                                        className="w-full border border-gray-300/40 rounded-xl pr-11 pl-4 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900 tracking-wider"
+                                    />
+                                </div>
                             </div>
 
+                            {/* فیلد پسورد با متد حداقل طول مجاز */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-600 mb-1.5">رمز عبور</label>
                                 <div className="relative flex items-center">
                                     <Lock size={16} className="absolute right-4 text-gray-400" />
-                                    <input required type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setIsPasswordFocused(true)} onBlur={() => setIsPasswordFocused(false)} placeholder="••••••••" className="w-full border border-gray-300/40 rounded-xl pr-11 pl-12 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900" />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 text-gray-400 hover:text-brand-pink p-1 rounded-lg">
+                                    <input
+                                        required
+                                        minLength={6}
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        onFocus={() => setIsPasswordFocused(true)}
+                                        onBlur={() => setIsPasswordFocused(false)}
+                                        placeholder="••••••••"
+                                        className="w-full border border-gray-300/40 rounded-xl pr-11 pl-12 py-3 text-sm outline-none bg-white/40 focus:bg-white/70 focus:border-brand-pink text-left font-mono text-gray-900 tracking-widest"
+                                    />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 text-gray-400 hover:text-brand-pink p-1 rounded-lg cursor-pointer">
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
                                 </div>
@@ -214,7 +297,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-center gap-2">
                                             <span>{isLoginTab ? 'ورود به حساب کاربری' : 'تکمیل ثبت‌نام و عضویت'}</span>
                                             <ArrowLeft size={16} className="transform -translate-x-1 group-hover:translate-x-0 transition-transform" />
                                         </div>
@@ -237,14 +320,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                                     ref={otpRefs[index]}
                                     value={data}
                                     maxLength="1"
+                                    inputMode="numeric"
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Backspace' && !otpValues[index] && index > 0 && otpRefs[index - 1].current.focus()}
+                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                    onPaste={handleOtpPaste}
                                     className="w-12 h-14 text-center text-xl font-black rounded-xl border border-white/60 bg-white/30 backdrop-blur-md outline-none text-purple-900 transition-all duration-300 focus:bg-white/80 focus:border-purple-500 focus:shadow-[0_0_20px_rgba(147,51,234,0.4)]"
                                 />
                             ))}
                         </div>
 
-                        <button onClick={() => setIsOtpStep(false)} className="mt-8 text-xs font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer block mx-auto">اصلاح شماره تلفن</button>
+                        <button type="button" onClick={() => setIsOtpStep(false)} className="mt-8 text-xs font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer block mx-auto">اصلاح شماره تلفن</button>
                     </div>
                 )}
             </div>

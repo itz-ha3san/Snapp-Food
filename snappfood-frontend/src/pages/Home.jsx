@@ -1,60 +1,39 @@
-import React, { useState } from 'react';
-import Navbar from '../components/Home/Navbar.jsx';
+import React from 'react';
 import Hero from '../components/Home/Hero.jsx';
 import Categories from '../components/Home/Categories.jsx';
 import PromoBanners from '../components/Home/PromoBanners.jsx';
 import FeaturedRestaurants from '../components/Home/FeaturedRestaurants.jsx';
 import AppDownload from '../components/Home/AppDownload.jsx';
 import Footer from '../components/Home/Footer.jsx';
-// 📍 فرض می‌کنیم مودال انتخاب آدرس را هم اینجا مدیریت می‌کنیم یا از هدر جدا کرده‌ایم
-import Header from '../components/Home/Header.jsx';
 
-export default function Home({ user, cartCount, onCartOpen, onAuthClick, onRestaurantSelect }) {
-    // 📍 ایجاد استیت مرکزی لوکیشن برای همگام‌سازی ناوبری و هیرو
-    const [currentLocation, setCurrentLocation] = useState({ province: 'تهران', city: 'تهران' });
-    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-
+export default function Home({ onRestaurantSelect, currentLocation }) {
     return (
         <div className="min-h-screen bg-white" dir="rtl">
+            {/*
+               ✅ نوار ناوبری و هدر کاملاً حذف شدند.
+               چون هدر اصلی را در App.jsx گذاشتیم و به صورت سراسری بالا رندر می‌شود.
+            */}
 
-            {/* ناوبری بالای صفحه با پروپ‌های کامل لوکیشن */}
-            <Navbar
-                user={user}
-                cartCount={cartCount}
-                onCartOpen={onCartOpen}
-                onAuthClick={onAuthClick}
-                currentLocation={currentLocation}
-                onLocationClick={() => setIsLocationModalOpen(true)}
-            />
-
-            {/* بخش هیرو متصل به آدرس انتخابی کاربر */}
+            {/* بخش هیرو متصل به آدرس انتخابی کاربر از کامپوننت مادر */}
             <Hero currentLocation={currentLocation} />
 
-            {/* بخش دسته‌بندی‌ها */}
-            <Categories />
+            {/* محتوای اصلی صفحه */}
+            <div className="space-y-12 pb-16">
+                {/* بخش دسته‌بندی‌ها */}
+                <Categories />
 
-            {/* بنرهای تخفیف ویژه */}
-            <PromoBanners />
+                {/* بنرهای تخفیف ویژه */}
+                <PromoBanners />
 
-            {/* رستوران‌های برگزیده */}
-            <FeaturedRestaurants onRestaurantSelect={onRestaurantSelect} />
+                {/* رستوران‌های برگزیده */}
+                <FeaturedRestaurants onRestaurantSelect={onRestaurantSelect} />
 
-            {/* بخش دانلود اپلیکیشن */}
-            <AppDownload />
+                {/* بخش دانلود اپلیکیشن */}
+                <AppDownload />
+            </div>
 
             {/* فوتر سایت */}
             <Footer />
-
-            {/* 📍 رندر مخفی پنجره مودال لوکیشن بر اساس استیت صفحه اصلی */}
-            {isLocationModalOpen && (
-                <Header
-                    currentLocation={currentLocation}
-                    onLocationChange={setCurrentLocation}
-                    // این بخش فقط برای رندر گرفتن لایه‌ رویی مودال Header استفاده می‌شود
-                    cartCount={cartCount}
-                    user={user}
-                />
-            )}
         </div>
     );
 }

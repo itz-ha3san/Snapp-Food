@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import Home from './pages/Home.jsx';
 import RestaurantMenu from './pages/RestaurantMenu.jsx';
 import LiveOrderTracker from './pages/OrderTracking.jsx';
-import UserProfile from './pages/UserProfile.jsx'; // 👈 اضافه شدن صفحه پروفایل
+import UserProfile from './pages/UserProfile.jsx';
 import CartDrawer from './components/Home/CartDrawer.jsx';
 import AuthModal from './components/Home/AuthModal.jsx';
 import CheckoutModal from './components/checkout/CheckoutModal.jsx';
-import ReviewModal from './components/profile/ReviewModal.jsx'; // 👈 اضافه شدن مودال ثبت نظر
+import ReviewModal from './components/profile/ReviewModal.jsx';
+import Header from './components/Home/Header.jsx';
 
-// دیتابیس اولیه تاریخچه سفارش‌های کاربر برای دمو و قابلیت سفارش مجدد
 const INITIAL_PAST_ORDERS = [
     {
         id: 'SF-1021',
@@ -33,22 +33,21 @@ const INITIAL_PAST_ORDERS = [
 ];
 
 export default function App() {
-    const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'restaurant' | 'tracking' | 'profile'
+    const [currentPage, setCurrentPage] = useState('home');
     const [activeRestaurant, setActiveRestaurant] = useState(null);
-    const [user, setUser] = useState({ name: 'محمد حسن ضیغمی', phone: '۰۹۱۲۳۴۵۶۷۸۹' }); // کاربر پیش‌فرض برای دسترسی آسان به پروفایل
+    const [user, setUser] = useState({ name: 'محمد حسن ضیغمی', phone: '۰۹۱۲۳۴۵۶۷۸۹' });
     const [cart, setCart] = useState([]);
     const [cartRestaurant, setCartRestaurant] = useState(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [latestOrder, setLatestOrder] = useState(null);
+    const [currentLocation, setCurrentLocation] = useState({ province: 'تهران', city: 'تهران' });
 
-    // استیت‌های جدید مدیریت تاریخچه و ثبت نظر
     const [pastOrders, setPastOrders] = useState(INITIAL_PAST_ORDERS);
     const [selectedOrderForComment, setSelectedOrderForComment] = useState(null);
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
-    // تابع کمکی برای تغییر صفحه همراه با اسکرول به بالای مرورگر
     const navigateTo = (page) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
@@ -94,7 +93,6 @@ export default function App() {
         });
     };
 
-    // این تابع پس از کلیک روی "اتصال به درگاه و پرداخت آنلاین" در مودال تسویه اجرا می‌شود
     const handleConfirmOrder = (checkoutData) => {
         const orderId = 'SF-' + Math.floor(1000 + Math.random() * 9000);
         const newOrderObj = {
@@ -104,10 +102,8 @@ export default function App() {
             ...checkoutData
         };
 
-        // ۱. پکیج کردن دیتای نهایی سفارش برای صفحه پیگیری زنده
         setLatestOrder(newOrderObj);
 
-        // ۲. اضافه کردن هوشمند سفارش جدید به ابتدای تاریخچه سفارشات گذشته کاربران
         const itemsSummaryString = cart.map(item => `${item.name} (${item.count})`).join(' + ');
         setPastOrders(prev => [
             {
@@ -122,31 +118,24 @@ export default function App() {
             ...prev
         ]);
 
-        // ۳. بستن مودال تسویه حساب و خالی کردن سبد خرید
         setIsCheckoutOpen(false);
         setCart([]);
         setCartRestaurant(null);
-
-        // ۴. هدایت کاربر به صفحه پیگیری زنده
         navigateTo('tracking');
     };
 
-    // ⚡ موتور سفارش مجدد: شارژ مستقیم سبد خرید با داده‌های فاکتور گذشته
     const handleReorder = (cartItems, restaurantObj) => {
         setCart(cartItems);
         setCartRestaurant(restaurantObj);
-        setIsCartOpen(true); // باز شدن خودکار سبد خرید برای تجربه کاربری جذاب‌تر
+        setIsCartOpen(true);
     };
 
-    // باز کردن مودال ثبت نظر برای سفارش خاص
     const handleOpenCommentModal = (order) => {
         setSelectedOrderForComment(order);
         setIsCommentModalOpen(true);
     };
 
-    // ارسال نهایی کامنت ثبت شده
     const handleReviewSubmit = (reviewData) => {
-        console.log("ثبت نظر موفقیت‌آمیز:", reviewData);
         alert(`امتیاز ${reviewData.rating} ستاره شما برای این رستوران ثبت شد.`);
         setIsCommentModalOpen(false);
     };
@@ -155,19 +144,24 @@ export default function App() {
 
     return (
         <>
-            {/* کلیدهای ناوبری موقت یا هدر بالایی در صورت لزوم برای جابجایی دمو */}
-            <div className="bg-white border-b border-gray-100 p-3 flex justify-center gap-4 text-xs font-black" dir="rtl">
-                <button onClick={() => navigateTo('home')} className={`cursor-pointer ${currentPage === 'home' ? 'text-brand-pink' : 'text-gray-500'}`}>صفحه اصلی</button>
-                <button onClick={() => navigateTo('profile')} className={`cursor-pointer ${currentPage === 'profile' ? 'text-brand-pink' : 'text-gray-500'}`}>پروفایل من 👤</button>
-            </div>
-
-            {/* ─── صفحه اصلی خانه ─── */}
-            {currentPage === 'home' && (
-                <Home
+            {/* هدر ثابت با قابلیت ناوبری هوشمند */}
+            {currentPage !== 'tracking' && (
+                <Header
                     user={user}
                     cartCount={cartCount}
                     onCartOpen={() => setIsCartOpen(true)}
                     onAuthClick={() => setIsAuthOpen(true)}
+                    onNavigate={navigateTo}
+                    currentLocation={currentLocation}
+                    onLocationChange={setCurrentLocation}
+                />
+            )}
+
+            {/* صفحه اصلی خانه */}
+            {currentPage === 'home' && (
+                <Home
+                    user={user}
+                    currentLocation={currentLocation}
                     onRestaurantSelect={(res) => {
                         const selected = res || {
                             id: 1,
@@ -184,7 +178,7 @@ export default function App() {
                 />
             )}
 
-            {/* ─── صفحه منوی اختصاصی رستوران ─── */}
+            {/* صفحه منوی اختصاصی رستوران */}
             {currentPage === 'restaurant' && (
                 <RestaurantMenu
                     restaurant={activeRestaurant}
@@ -197,7 +191,7 @@ export default function App() {
                 />
             )}
 
-            {/* ─── صفحه پیگیری زنده سفارش ─── */}
+            {/* صفحه پیگیری زنده سفارش */}
             {currentPage === 'tracking' && (
                 <LiveOrderTracker
                     orderDetails={latestOrder}
@@ -205,17 +199,19 @@ export default function App() {
                 />
             )}
 
-            {/* ─── صفحه جامع پروفایل کاربری جدید ─── */}
+            {/* صفحه جامع پروفایل کاربری */}
             {currentPage === 'profile' && (
-                <UserProfile
-                    user={user}
-                    pastOrders={pastOrders}
-                    onReorder={handleReorder}
-                    onAddComment={handleOpenCommentModal}
-                />
+                <div className="min-h-screen bg-gray-50 py-6">
+                    <UserProfile
+                        user={user}
+                        pastOrders={pastOrders}
+                        onReorder={handleReorder}
+                        onAddComment={handleOpenCommentModal}
+                    />
+                </div>
             )}
 
-            {/* ─── کشوی سبد خرید جانبی ─── */}
+            {/* کشوها و مودال‌ها */}
             <CartDrawer
                 isOpen={isCartOpen}
                 onClose={() => setIsCartOpen(false)}
@@ -234,7 +230,6 @@ export default function App() {
                 }}
             />
 
-            {/* ─── پنجره تسویه حساب و فرم فاکتور جامع ─── */}
             <CheckoutModal
                 isOpen={isCheckoutOpen}
                 onClose={() => setIsCheckoutOpen(false)}
@@ -242,7 +237,6 @@ export default function App() {
                 onConfirmOrder={handleConfirmOrder}
             />
 
-            {/* ─── مودال ورود و احراز هویت ─── */}
             <AuthModal
                 isOpen={isAuthOpen}
                 onClose={() => setIsAuthOpen(false)}
@@ -252,7 +246,6 @@ export default function App() {
                 }}
             />
 
-            {/* ─── مودال ثبت امتیاز و کامنت فیدبک ─── */}
             <ReviewModal
                 isOpen={isCommentModalOpen}
                 onClose={() => setIsCommentModalOpen(false)}
